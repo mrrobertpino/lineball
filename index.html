@@ -238,7 +238,51 @@ if(s.page===11)h=`<div class="eyebrow">INSPECT AGAIN</div><h2>Inspect the revise
 ${s.retests.map((t,i)=>`<div class="testcard"><h3>${esc(t.name||`Example ${i+1}`)}</h3><div class="calc">${calc(t,true).map(x=>`<div>${esc(x)}</div>`).join('')}</div><div class="scorebig">${score(t,true)>0?'+':''}${score(t,true)} → ${esc(prediction(t,true)==='a'?(s.a||'Class A'):(s.b||'Class B'))}</div>${t.label?`<div class="${t.label===prediction(t,true)?'match':'miss'}">${t.label===prediction(t,true)?'✓ MATCHED':'✕ DID NOT MATCH'} your label</div>`:'<div class="hint">No label selected yet.</div>'}</div>`).join('')}
 <div class="compare"><div class="metric"><span>BEFORE</span><strong>${matches(false)} / 4</strong></div><div class="metric"><span>AFTER</span><strong>${retestMatches()} / 4</strong></div></div>
 <div class="semantic next"><span class="semanticTag">WHAT TO NOTICE</span><p class="copy">Did the revised model match more of your expected labels, fewer, or the same number?</p></div>${nav()}`;
-$('view').innerHTML=h;bind();}
+
+if(s.page===12)h=`<div class="eyebrow">SUMMARY</div><h2>What did you build?</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span>
+<p class="copy">You built a <b>linear classifier</b>: a model that checks features, uses weights to turn those features into a score, and uses that score to choose between two classes.</p></div>
+<div class="flow">
+<div>1<br><b>CHECK FEATURES</b></div>
+<div>2<br><b>USE WEIGHTS</b></div>
+<div>3<br><b>ADD SCORE</b></div>
+<div>4<br><b>PREDICT CLASS</b></div>
+</div>
+<div class="semantic next"><span class="semanticTag">BIG IDEA</span>
+<p class="copy">Today, you manually built and adjusted the model. You used testing, inspection, and evaluation to decide how to revise it.</p>
+<p class="copy">Next, you will see how labeled data can be used to adjust a model's weights automatically.</p></div>
+<div class="nav"><button class="btn" onclick="go(11)">Previous</button><button class="btn primary" onclick="go(13)">Exit Ticket</button></div>`;
+
+if(s.page===13)h=`<div class="eyebrow">EXIT TICKET</div><h2>Explain what you learned.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span>
+<p class="copy">Use the vocabulary from the lesson to explain how a linear classifier works and how testing helps us improve one.</p></div>
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span>
+<p class="copy">Answer each question in complete thoughts. Your answers save automatically as you type.</p></div>
+<div class="task"><div class="workTitle">YOUR WORK</div>
+<div class="exitQ"><label>1. What is a feature, and what does a linear classifier do when that feature is present?</label><textarea data-exit="q1">${esc(s.exit.q1)}</textarea></div>
+<div class="exitQ"><label>2. What does a weight tell the model? Explain what negative and positive weights mean.</label><textarea data-exit="q2">${esc(s.exit.q2)}</textarea></div>
+<div class="exitQ"><label>3. Why do we test a model using examples where we already know the expected class?</label><textarea data-exit="q3">${esc(s.exit.q3)}</textarea></div>
+<div class="exitQ"><label>4. Describe the model-making process using these terms: DATASET, TRAIN, TEST, INSPECT, EVALUATE.</label><textarea data-exit="q4">${esc(s.exit.q4)}</textarea></div>
+</div>
+${nav()}`;
+
+if(s.page===14)h=`<div class="eyebrow">SUBMIT</div><h2>Finish and submit your work.</h2>
+<div class="semantic learn"><span class="semanticTag">SAVE STATUS</span>
+<p class="copy">Your work has been saving automatically in this browser as you go.</p></div>
+<div class="task"><div class="workTitle">YOUR WORK</div>${input('Your name','studentName',s.studentName)}</div>
+<div class="submitStatus">
+<div class="submitCard"><span>LOCAL SAVE</span><strong>✓ Saved in this browser</strong><p class="hint">Reloading this page should keep your work on this device.</p></div>
+<div class="submitCard"><span>CLASS SUBMISSION</span><strong>Firebase not connected yet</strong><p class="hint">This button will be activated once the class submission database is ready.</p></div>
+</div>
+<div class="semantic do"><span class="semanticTag">BACKUP</span>
+<p class="copy">Download a text backup of your answers before you leave.</p>
+<button class="btn primary" id="exportBtn">Export Backup</button></div>
+<div class="semantic important"><span class="semanticTag">SUBMISSION</span>
+<p class="copy">Class submission is not available yet.</p>
+<button class="btn disabled" disabled>Submit to Class</button></div>
+<div class="nav"><button class="btn" onclick="go(13)">Previous</button><button class="btn" onclick="resetLab()">Start Over</button></div>`;
+
+$('view').innerHTML=h;bind();const ex=$('exportBtn');if(ex)ex.onclick=exportBackup;}
 function bind(){
  document.querySelectorAll('[data-key]').forEach(e=>e.addEventListener('input',()=>{const k=e.dataset.key;if(k.startsWith('features.'))s.features[+k.split('.')[1]]=e.value;else if(k.startsWith('test.'))s.tests[+k.split('.')[1]].name=e.value;else if(k.startsWith('retest.'))s.retests[+k.split('.')[1]].name=e.value;else s[k]=e.value;save();if(s.page===2){const q=document.querySelector('.scoreQuestion');const labs=document.querySelectorAll('.scoreLabels span');if(q)q.textContent=s.question||'Your question will appear here';if(labs[0])labs[0].textContent='← '+(s.a||'CLASS A');if(labs[1])labs[1].textContent=(s.b||'CLASS B')+' →';}}));
  document.querySelectorAll('[data-slider]').forEach(e=>e.addEventListener('input',()=>{if(e.dataset.slider==='new')s.newWeight=+e.value;else s.weights[+e.dataset.slider]=+e.value;const id=e.dataset.slider==='new'?'bubblen':'bubble'+e.dataset.slider;$(id).textContent=(+e.value>0?'+':'')+e.value;$(id).style.left=((+e.value+5)*10)+'%';save()}));
@@ -253,12 +297,45 @@ function bind(){
  document.querySelectorAll('[data-demo]').forEach(e=>e.addEventListener('click',()=>{const i=+e.dataset.demo;s.demo[i]=!s.demo[i];save();page()}));
 }
 window.go=n=>{if(n<0||n>=pages.length)return;s.page=n;save();page();window.scrollTo({top:0,behavior:'smooth'})};
+
+function exportBackup(){
+ const lines=[];
+ lines.push('LINEball / Linear Classifier Lab');
+ lines.push('');
+ lines.push('Student: '+(s.studentName||''));
+ lines.push('Question: '+(s.question||''));
+ lines.push('Class A: '+(s.a||''));
+ lines.push('Class B: '+(s.b||''));
+ lines.push('');
+ lines.push('FEATURES + WEIGHTS');
+ s.features.forEach((f,i)=>lines.push(`${i+1}. ${f||''}: ${s.weights[i]}`));
+ lines.push(`5. ${s.newFeature||''}: ${s.newWeight}`);
+ lines.push('');
+ lines.push('FIRST TEST');
+ s.tests.forEach((t,i)=>lines.push(`${i+1}. ${t.name||''} | expected=${t.label==='a'?s.a:t.label==='b'?s.b:''} | model=${prediction(t,false)==='a'?s.a:s.b} | score=${score(t,false)}`));
+ lines.push('');
+ lines.push('SECOND TEST');
+ s.retests.forEach((t,i)=>lines.push(`${i+1}. ${t.name||''} | expected=${t.label==='a'?s.a:t.label==='b'?s.b:''} | model=${prediction(t,true)==='a'?s.a:s.b} | score=${score(t,true)}`));
+ lines.push('');
+ lines.push('EXIT TICKET');
+ lines.push('1. '+(s.exit.q1||''));
+ lines.push('2. '+(s.exit.q2||''));
+ lines.push('3. '+(s.exit.q3||''));
+ lines.push('4. '+(s.exit.q4||''));
+ const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download=(s.studentName||'lineball').replace(/[^a-z0-9-_]+/gi,'_')+'_lineball.txt';
+ a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
 window.resetLab=()=>{if(confirm('Start over and erase this model?')){s=fresh();save();page()}};
 $('vocabTab').onclick=()=>$('drawerDock').classList.toggle('open');
-const savedTheme=localStorage.getItem('weightballTheme')||'dark';
+const savedTheme=localStorage.getItem('lineballTheme')||'dark';
 if(savedTheme==='light')document.body.classList.add('light');
 function updateThemeBtn(){const light=document.body.classList.contains('light');$('themeBtn').textContent=light?'☾ Dark mode':'☀ Light mode'}
-$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('weightballTheme',document.body.classList.contains('light')?'light':'dark');updateThemeBtn()};
+$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('lineballTheme',document.body.classList.contains('light')?'light':'dark');updateThemeBtn()};
 updateThemeBtn();
 page();
 </script>
