@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LINEball · Linear Classifiers</title>
+<style>
+:root{font-family:Lexend,"Century Gothic",Futura,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+--bg:#121c2a;--chrome:#1d2b3e;--panel:#223248;--panel2:#182538;--line:#40556f;--text:#eef4fb;--muted:#b5c4d6;
+--blue:#3f83cc;--blue2:#7db7f0;--green:#2d977e;--green2:#8cddc7;--yellow:#f3ba45;--yellow2:#ffe3a0;--red:#dd514e;--red2:#ffaaa7;
+--white:#ffffff;--ink:#111827;--workBorder:#d6e0ea;--track:#90a5bb;--shadow:rgba(0,0,0,.24)}
+body.light{--bg:#e9eef5;--chrome:#23354c;--panel:#f6f8fb;--panel2:#edf2f7;--line:#c8d3e0;--text:#17243a;--muted:#596a80;--workBorder:#101820;--track:#75879a;--shadow:rgba(25,40,60,.12)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);transition:background .18s ease,color .18s ease}button,input,textarea{font:inherit}.shell{width:min(960px,calc(100% - 32px));margin:auto;padding:18px 0 60px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:16px}.brand{display:flex;align-items:center;gap:12px}.dog{width:78px;height:72px;object-fit:contain}.brand h1{margin:0;font-size:clamp(30px,5vw,44px);font-weight:950}.brand p{margin:5px 0 0;color:var(--muted);font-style:italic}.topright{text-align:right;font-weight:900}.lesson{font-size:13px;color:var(--muted);margin-top:4px}
+.stepbox{margin:18px 0 22px}.stephead{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:10px}.stephead h3{margin:0;font-size:16px}.stephead span{color:var(--muted);font-size:13px}.process{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.light{background:#2a2026;border:2px solid #6e3941;border-radius:14px;padding:12px 5px;text-align:center;opacity:.42}.light.active{background:#7a2635;border-color:var(--red2);opacity:1;box-shadow:0 0 0 3px rgba(239,109,122,.08)}.light.done{opacity:.74}.light .n{font-size:19px;font-weight:950}.light .t{font-size:12px;font-weight:900;letter-spacing:.05em}.stepnote{margin-top:8px;color:var(--muted);font-size:13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:clamp(20px,4vw,34px)}.eyebrow{font-size:11px;letter-spacing:.16em;font-weight:950;color:var(--blue2);text-transform:uppercase}h2{font-size:clamp(28px,4vw,38px);line-height:1.05;margin:6px 0 14px;letter-spacing:-.03em}h3{margin:0 0 10px}.lead{font-size:18px;line-height:1.65;color:var(--text)}.copy{font-size:16px;line-height:1.65;color:var(--muted)}.section{margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}.sectiontitle{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--green2);font-weight:950;margin-bottom:10px}.example{background:var(--panel2);border:2px solid var(--green);border-radius:14px;padding:18px 20px;margin:16px 0}.exampletag{display:inline-block;background:var(--green);color:white;padding:4px 9px;border-radius:7px;font-size:11px;font-weight:950;letter-spacing:.08em;margin-bottom:10px}.why{background:var(--panel2);border:1px solid var(--line);border-left:8px solid var(--yellow);padding:16px 18px;border-radius:0 11px 11px 0;margin:18px 0;color:var(--text);line-height:1.6}.warning{background:var(--panel2);border:2px solid var(--red);border-radius:14px;padding:18px 20px;margin:18px 0;line-height:1.6}.warning h3{color:var(--red2);font-size:21px}.task{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:22px;margin-top:18px}.task h3{font-size:22px}.actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:24px}.btn{border:1px solid #50617b;background:var(--panel2);color:var(--text);border-radius:9px;padding:11px 16px;font-weight:900;cursor:pointer}.btn.primary{background:var(--green);border-color:var(--green2);color:#ffffff}.btn:disabled{opacity:.4;cursor:not-allowed}.fields{display:grid;gap:14px}.field label{display:block;font-size:14px;font-weight:850;margin-bottom:6px}.field input,.field textarea{width:100%;background:#fff;color:#111827;border:2px solid #91a4b7;border-radius:9px;padding:12px}.field textarea{min-height:86px;resize:vertical}.hint{font-size:13px;color:var(--muted);margin-top:5px}
+/* vocab drawer */
+.drawerDock{position:fixed;right:-340px;top:18%;width:340px;height:64vh;z-index:40;transition:right .25s ease}.drawerDock.open{right:0}.drawerTab{position:absolute;left:-43px;top:20px;width:44px;height:112px;border:0;background:var(--green);color:white;font-weight:950;border-radius:10px 0 0 10px;writing-mode:vertical-rl;letter-spacing:.08em;cursor:pointer}.drawer{height:100%;background:var(--chrome);border:1px solid #405169;border-right:0;border-radius:14px 0 0 14px;padding:24px;overflow:auto;box-shadow:-8px 8px 26px rgba(0,0,0,.25)}.drawer h3{font-size:25px}.term{margin:16px 0}.term b{color:var(--green2)}
+/* score line */
+.scoreDiagram{background:#111d2e;border:1px solid var(--line);border-radius:15px;padding:18px 20px;margin:16px 0}.scoreQuestion{text-align:center;font-weight:950;font-size:18px;margin-bottom:14px}.scoreLabels{display:flex;justify-content:space-between;gap:18px;font-weight:950;margin-bottom:8px}.scoreTrack{position:relative;height:42px;margin:0 14px}.scoreTrack:before{content:"";position:absolute;left:0;right:0;top:19px;height:4px;background:var(--track);border-radius:4px}.scoreTrack:after{content:"";position:absolute;left:50%;top:8px;width:3px;height:26px;background:var(--text)}.ticks{display:grid;grid-template-columns:repeat(11,1fr);font-size:10px;color:var(--muted);text-align:center;margin:2px 14px 0}.marker{position:absolute;top:5px;width:28px;height:28px;border-radius:50%;background:var(--yellow);border:3px solid #5c4619;transform:translateX(-50%);transition:left .25s ease;box-shadow:0 2px 9px rgba(0,0,0,.3)}.scoreReadout{text-align:center;margin-top:9px;font-weight:950;font-size:18px}
+/* interactive balance */
+.balanceBox{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}.balanceBox svg{width:100%;height:245px;display:block}.weightTray{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin:15px 0}.weightChip{border:2px solid #53677e;background:var(--panel);color:var(--text);border-radius:10px;padding:10px 12px;font-weight:900;cursor:pointer}.weightChip.on{background:var(--green);color:white;border-color:var(--green2)}.weightChip.neg.on{background:var(--red);color:white;border-color:var(--red)}.demoCaption{text-align:center;color:var(--muted);font-size:13px}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.flow>div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;font-weight:900}.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;font-size:clamp(18px,3vw,26px);text-align:center;margin:18px 0}.featureRow{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px;margin:18px 0}.sliderline{display:grid;grid-template-columns:1fr;gap:7px}.sliderWrap{position:relative;padding-top:32px}.sliderWrap input[type=range]{width:100%;accent-color:var(--green2)}.bubble{position:absolute;top:0;transform:translateX(-50%);background:var(--green);color:white;min-width:34px;text-align:center;padding:4px 6px;border-radius:7px;font-weight:950;font-size:13px}.ends{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:800}.rangeTicks{display:grid;grid-template-columns:repeat(11,1fr);font-size:10px;color:var(--muted);text-align:center;margin-top:-2px}.testcard{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:24px;margin:34px 0}.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.check{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}.check input{width:18px;height:18px}.labelchoice{display:flex;gap:8px;margin-top:10px}.choice{flex:1;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:10px;font-weight:900;cursor:pointer}.choice.sel{background:var(--green);border-color:var(--green2);color:#ffffff}.prediction{margin-top:14px;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}.calc{display:grid;gap:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px}.scorebig{font-size:28px;font-weight:950;margin-top:8px}.match{color:#187a61;font-weight:950}.miss{color:#b4232d;font-weight:950}.resultHero{text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:28px;margin:18px 0}.resultHero .big{font-size:clamp(42px,8vw,68px);font-weight:950}.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:18px;text-align:center}.metric strong{font-size:34px;display:block}.progress{font-size:13px;color:var(--muted);text-align:right;margin-top:10px}
+
+/* visual grammar: color is a label, not a wallpaper */
+.semantic{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:20px 0}
+.semantic::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;border-radius:14px 0 0 14px}
+.semantic.learn::before{background:var(--yellow)}
+.semantic.do::before{background:var(--blue)}
+.semantic.next::before{background:var(--green)}
+.semantic.important::before{background:var(--red)}
+.semanticTag{display:inline-block;font-size:11px;letter-spacing:.12em;font-weight:950;text-transform:uppercase;border-radius:7px;padding:5px 9px;margin-bottom:9px}
+.learn .semanticTag{background:var(--yellow);color:#3d2a00}
+.do .semanticTag{background:var(--blue);color:white}
+.next .semanticTag{background:var(--green);color:white}
+.important .semanticTag{background:var(--red);color:white}
+.workTitle{display:inline-block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--red2);font-weight:950;margin-bottom:14px;padding:5px 9px;border:1px solid rgba(221,81,78,.58);border-radius:7px;background:rgba(221,81,78,.06)}
+body.light .workTitle{color:#24364a}
+.themeBtn{border:2px solid var(--yellow);background:var(--panel2);color:var(--text);border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
+.topright{display:flex;align-items:center;gap:14px}.topMeta{text-align:right}
+body.light .panel,body.light .semantic,body.light .scoreDiagram,body.light .balanceBox,body.light .flow>div,body.light .metric,body.light .resultHero{box-shadow:0 4px 14px var(--shadow)}
+body.light .light{color:#f5f7fa}
+body.light .field label,.task .copy,.task .hint,.featureRow .hint,.testcard .hint{color:#26384d}
+body.light .ends,body.light .rangeTicks{color:#60758d}
+.movieChooser{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.movieCard{border:2px solid var(--line);background:var(--panel2);color:var(--text);border-radius:14px;padding:18px;cursor:pointer;text-align:left}
+.movieCard.active{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(243,186,69,.15)}
+.movieCard b{display:block;font-size:20px;margin-bottom:4px}
+.movieFeature{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:13px 14px;margin:10px 0;border-radius:10px;background:var(--panel2);border:1px solid var(--line);opacity:.45}
+.movieFeature.on{opacity:1;border-color:var(--green);box-shadow:inset 5px 0 0 var(--green)}
+.movieFeature .movieWeight{font-weight:950;font-size:18px}
+.blindNotice{background:var(--panel2);border:2px solid var(--blue);border-radius:14px;padding:16px 18px;margin:20px 0}
+.testcard h3{font-size:24px;margin-bottom:18px}
+body.light .testcard,body.light .task,body.light .featureRow{box-shadow:0 3px 10px rgba(25,40,60,.08)}
+
+
+body.light .field input,body.light .field textarea{background:#fff;color:#111827;border-color:#101820}
+body.light .task,body.light .featureRow,body.light .testcard{background:var(--panel2);color:var(--text);border-color:var(--line)}
+body.light .check,body.light .choice,body.light .prediction{background:var(--panel);color:var(--text);border-color:var(--line)}
+body.light .btn{background:var(--panel2);color:var(--text);border-color:var(--line)}
+body.light .btn.primary{background:var(--green);color:#fff;border-color:var(--green2)}
+
+@media(max-width:720px){.process{gap:4px}.light{padding:8px 2px}.light .t{font-size:9px}.flow{grid-template-columns:1fr 1fr}.checks{grid-template-columns:1fr}.top{flex-wrap:wrap}.topright{text-align:left}.compare{grid-template-columns:1fr}.drawerDock{width:82vw;right:-82vw}.drawerTab{left:-43px}.scoreLabels{font-size:13px}}
+
+.movieExamplesLabel{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:950;color:var(--blue2);margin:22px 0 10px}
+.movieTabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.movieTab{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:11px 15px;font-weight:900;cursor:pointer}
+.movieTab.active{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(243,186,69,.14)}
+.movieStage{display:grid;grid-template-columns:minmax(220px,.9fr) minmax(280px,1.1fr);gap:22px;align-items:stretch;margin:16px 0 22px}
+.posterFrame{background:#0d1520;border:2px solid var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0}
+.posterFrame img{width:100%;height:100%;object-fit:contain;background:#0d1520}
+.featureLights{display:grid;grid-template-rows:repeat(4,1fr);gap:12px;align-content:stretch}
+.featureLight{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);opacity:.38;transition:.18s ease}
+.featureLight.on.pos{opacity:1;border-color:var(--green);box-shadow:inset 6px 0 0 var(--green)}
+.featureLight.on.neg{opacity:1;border-color:var(--red);box-shadow:inset 6px 0 0 var(--red)}
+.featureLight .label{font-weight:900}
+.featureLight .value{font-size:20px;font-weight:950}
+.featureLight.off .value{color:var(--muted)}
+.demoMath{margin-top:10px}
+body.light .posterFrame{background:#dfe6ee}
+body.light .posterFrame img{background:#dfe6ee}
+@media(max-width:760px){.movieStage{grid-template-columns:1fr}.posterFrame{min-height:320px}.featureLights{grid-template-rows:none}}
+
+
+.exitQ{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:18px;margin:18px 0}
+.exitQ label{display:block;font-weight:900;margin-bottom:10px}
+.exitQ textarea{width:100%;min-height:110px;resize:vertical;background:#fff;color:#111827;border:2px solid #91a4b7;border-radius:10px;padding:12px 14px;font:inherit;box-sizing:border-box}
+.submitStatus{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.submitCard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:18px}
+.submitCard strong{display:block;font-size:22px;margin-top:6px}
+.btn.disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.2)}
+body.light .exitQ{background:var(--panel)}
+@media(max-width:700px){.submitStatus{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+<div class="drawerDock" id="drawerDock">
+  <button class="drawerTab" id="vocabTab" aria-label="Open or close vocabulary">VOCAB</button>
+  <aside class="drawer">
+    <h3>Lesson Vocabulary</h3>
+    <div class="term"><b>Linear classifier</b><br>A model that combines weighted features to sort an item into one of two classes.</div>
+    <div class="term"><b>Class</b><br>One of the categories the model can predict.</div>
+    <div class="term"><b>Feature</b><br>A piece of information the model checks.</div>
+    <div class="term"><b>Weight</b><br>A number showing which direction a feature pushes the score and how strongly.</div>
+    <div class="term"><b>Score</b><br>The total after the model adds the weights of the features that are present.</div>
+    <div class="term"><b>Prediction</b><br>The class chosen by the model.</div>
+    <div class="term"><b>Label</b><br>The class we say an example should belong to.</div>
+    <div class="term"><b>Dataset</b><br>A collection of examples used to build, train, or test a model.</div>
+    <div class="term"><b>Train</b><br>Use labeled examples to improve a model.</div>
+    <div class="term"><b>Testing</b><br>Checking whether a model produces expected results by comparing its predictions to examples with known labels.</div>
+    <div class="term"><b>Inspect</b><br>Look closely at how and why the model made its predictions.</div>
+    <div class="term"><b>Evaluate</b><br>Judge how well the model performed and what should change.</div>
+  </aside>
+</div>
+<div class="shell">
+<header class="top"><div class="brand"><img class="dog" src="lineball.png" alt="Lineball mascot"><div><h1>LINEball</h1><p>See inside a linear classifier.</p></div></div><div class="topright"><div class="topMeta">Linear Classifiers<div class="lesson">Day 1 · How the model works</div></div><button class="themeBtn" id="themeBtn">☀ Light mode</button></div></header>
+<div class="stepbox"><div class="stephead"><h3>The Five Steps of Machine Learning: What step are we on?</h3><span id="stepStatus"></span></div><div class="process" id="process"></div><div class="stepnote" id="stepNote"></div></div>
+<main class="panel" id="view"></main><div class="progress" id="progress"></div>
+</div>
+<script>
+const STEPS=['DATASET','TRAIN','TEST','INSPECT','EVALUATE'];
+const pages=[
+{step:null,title:'What is a linear classifier?'},
+{step:null,title:'Understanding weights'},
+{step:null,title:'Choose the question and classes'},
+{step:null,title:'Choose features'},
+{step:null,title:'Assign weights'},
+{step:null,title:'How a prediction works'},
+{step:2,title:'Test your model'},
+{step:3,title:'Inspect the results'},
+{step:4,title:'Evaluate your model'},
+{step:null,title:'Improve the model'},
+{step:2,title:'Test again'},
+{step:3,title:'Inspect again'},
+{step:4,title:'What did we build?'},
+{step:4,title:'Exit Ticket'},
+{step:null,title:'Submit'}
+];
+const fresh=()=>({page:0,question:'',a:'',b:'',features:['','','',''],weights:[0,0,0,0],newFeature:'',newWeight:0,demo:[true,true,true,true],movieDemo:0,tests:Array.from({length:4},()=>({name:'',bits:[false,false,false,false,false],label:null})),retests:Array.from({length:4},()=>({name:'',bits:[false,false,false,false,false],label:null})),exit:{q1:'',q2:'',q3:'',q4:''},studentName:''});
+let s=(()=>{try{const x=Object.assign(fresh(),JSON.parse(localStorage.getItem('lineballRevisedV2')||'{}'));if(!Array.isArray(x.retests)||x.retests.length!==4)x.retests=fresh().retests;return x}catch(e){return fresh()}})();
+const $=id=>document.getElementById(id); const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function save(){localStorage.setItem('lineballRevisedV2',JSON.stringify(s))}
+function process(){const st=pages[s.page].step;$('process').innerHTML=STEPS.map((x,i)=>`<div class="light ${i===st?'active':''}"><div class="n">0${i+1}</div><div class="t">${x}</div></div>`).join('');$('progress').textContent=`Page ${s.page+1} of ${pages.length}`;$('stepStatus').textContent=st===null?'Model setup / concept':`Step ${st+1}: ${STEPS[st]}`;$('stepNote').textContent=st===null?'Today you are manually building and adjusting a linear classifier. Later, you will see how labeled data can be used to adjust its weights automatically.':'This page focuses on one step in the machine-learning cycle.'}
+function nav(back=true,next=true){return `<div class="actions">${back?`<button class="btn" onclick="go(${s.page-1})">Previous</button>`:'<span></span>'}${next?`<button class="btn primary" onclick="go(${s.page+1})">Continue</button>`:''}</div>`}
+function input(label,key,val,hint=''){return `<div class="field"><label>${label}</label><input data-key="${key}" value="${esc(val)}">${hint?`<div class="hint">${hint}</div>`:''}</div>`}
+function scoreLine(left,right,question,score=0){const pct=Math.max(0,Math.min(100,50+(score*10)));return `<div class="scoreDiagram"><div class="scoreQuestion">${esc(question||'What class should this item belong to?')}</div><div class="scoreLabels"><span>← ${esc(left||'CLASS A')}</span><span>${esc(right||'CLASS B')} →</span></div><div class="scoreTrack"><div class="marker" style="left:${pct}%"></div></div><div class="ticks"><span>-5</span><span>-4</span><span>-3</span><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span><span>+3</span><span>+4</span><span>+5</span></div><div class="scoreReadout">Score: ${score>0?'+':''}${score}${score<0?` → ${esc(left||'CLASS A')}`:score>0?` → ${esc(right||'CLASS B')}`:' → decision point'}</div></div>`}
+const demoWeights=[{name:'Bad trailer',w:-3},{name:'Too long',w:-2},{name:'Director I like',w:2},{name:'Positive reviews',w:4}];
+function demoScore(){return demoWeights.reduce((sum,x,i)=>sum+(s.demo[i]?x.w:0),0)}
+function balanceSVG(score){const ang=Math.max(-10,Math.min(10,score*1.5))*Math.PI/180,half=250,midX=400,midY=94,dx=Math.cos(ang)*half,dy=Math.sin(ang)*half,xL=midX-dx,yL=midY-dy,xR=midX+dx,yR=midY+dy;return `<svg viewBox="0 0 800 245" role="img" aria-label="Balance scale showing weighted evidence"><line x1="${xL}" y1="${yL}" x2="${xR}" y2="${yR}" stroke="#9bb0c3" stroke-width="9" stroke-linecap="round"/><polygon points="400,105 350,200 450,200" fill="#52677b"/><line x1="${xL}" y1="${yL}" x2="${xL}" y2="${yL+60}" stroke="#9bb0c3" stroke-width="3"/><line x1="${xR}" y1="${yR}" x2="${xR}" y2="${yR+60}" stroke="#9bb0c3" stroke-width="3"/><path d="M ${xL-95} ${yL+60} Q ${xL} ${yL+98} ${xL+95} ${yL+60}" fill="none" stroke="#9bb0c3" stroke-width="5"/><path d="M ${xR-95} ${yR+60} Q ${xR} ${yR+98} ${xR+95} ${yR+60}" fill="none" stroke="#9bb0c3" stroke-width="5"/><text x="${xL}" y="${yL+52}" text-anchor="middle" fill="#ffcad2" font-size="19" font-weight="900">BAD MOVIE</text><text x="${xR}" y="${yR+52}" text-anchor="middle" fill="#b5f0dc" font-size="19" font-weight="900">GOOD MOVIE</text></svg>`}
+function slider(i,label,val,isNew=false){const pct=(val+5)*10;return `<div class="featureRow"><strong>${esc(label||`Feature ${i+1}`)}</strong><div class="sliderline"><div class="sliderWrap"><span class="bubble" id="bubble${isNew?'n':i}" style="left:${pct}%">${val>0?'+':''}${val}</span><input type="range" min="-5" max="5" step="1" value="${val}" data-slider="${isNew?'new':i}"></div><div class="rangeTicks"><span>-5</span><span>-4</span><span>-3</span><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span><span>+3</span><span>+4</span><span>+5</span></div><div class="ends"><span>← toward ${esc(s.a||'Class A')}</span><span>toward ${esc(s.b||'Class B')} →</span></div></div></div>`}
+function score(t,includeNew=false){let sum=0;s.weights.forEach((w,i)=>{if(t.bits[i])sum+=+w});if(includeNew&&t.bits[4])sum+=+s.newWeight;return sum}
+function prediction(t,includeNew=false){return score(t,includeNew)<0?'a':'b'}
+function calc(t,includeNew=false){let rows=[];s.features.forEach((f,i)=>{if(t.bits[i])rows.push(`${f||'Feature '+(i+1)}: ${s.weights[i]>0?'+':''}${s.weights[i]}`)});if(includeNew&&t.bits[4])rows.push(`${s.newFeature||'New feature'}: ${s.newWeight>0?'+':''}${s.newWeight}`);if(!rows.length)rows.push('No checked features: +0');return rows}
+function testCards(includeNew=false){return s.tests.map((t,i)=>`<div class="testcard"><h3>Example ${i+1}</h3>${input('Name or describe this example',`test.${i}.name`,t.name)}<div class="hint">Which of your features are present?</div><div class="checks">${s.features.map((f,j)=>`<label class="check"><input type="checkbox" data-bit="${i}.${j}" ${t.bits[j]?'checked':''}>${esc(f||`Feature ${j+1}`)}</label>`).join('')}${includeNew?`<label class="check"><input type="checkbox" data-bit="${i}.4" ${t.bits[4]?'checked':''}>${esc(s.newFeature||'New feature')}</label>`:''}</div><div class="hint">Which class do YOU think this example belongs in?</div><div class="labelchoice"><button class="choice ${t.label==='a'?'sel':''}" data-label="${i}.a">${esc(s.a||'Class A')}</button><button class="choice ${t.label==='b'?'sel':''}" data-label="${i}.b">${esc(s.b||'Class B')}</button></div><div class="prediction"><div class="calc">${calc(t,includeNew).map(x=>`<div>${esc(x)}</div>`).join('')}</div><div class="scorebig">Total: ${score(t,includeNew)>0?'+':''}${score(t,includeNew)} → ${esc(prediction(t,includeNew)==='a'?(s.a||'Class A'):(s.b||'Class B'))}</div>${t.label?`<div class="${t.label===prediction(t,includeNew)?'match':'miss'}">${t.label===prediction(t,includeNew)?'✓ MATCH':'✕ DOES NOT MATCH'} your label</div>`:''}</div></div>`).join('')}
+function matches(includeNew=false){return s.tests.filter(t=>t.label&&t.label===prediction(t,includeNew)).length}
+function blindTestCards(includeNew=false){return s.tests.map((t,i)=>`<div class="testcard"><h3>Example ${i+1}</h3>${input('Name or describe this example',`test.${i}.name`,t.name)}<div class="hint">Which of your features are present?</div><div class="checks">${s.features.map((f,j)=>`<label class="check"><input type="checkbox" data-bitblind="${i}.${j}" ${t.bits[j]?'checked':''}>${esc(f||`Feature ${j+1}`)}</label>`).join('')}${includeNew?`<label class="check"><input type="checkbox" data-bitblind="${i}.4" ${t.bits[4]?'checked':''}>${esc(s.newFeature||'New feature')}</label>`:''}</div><div class="hint">Which class do YOU think this example belongs in?</div><div class="labelchoice"><button class="choice ${t.label==='a'?'sel':''}" data-labelblind="${i}.a">${esc(s.a||'Class A')}</button><button class="choice ${t.label==='b'?'sel':''}" data-labelblind="${i}.b">${esc(s.b||'Class B')}</button></div></div>`).join('')}
+function blindRetestCards(){return s.retests.map((t,i)=>`<div class="testcard"><h3>Example ${i+1}</h3>${input('Type the same example you used before',`retest.${i}.name`,t.name)}<div class="hint">Which of your features are present?</div><div class="checks">${s.features.map((f,j)=>`<label class="check"><input type="checkbox" data-rebit="${i}.${j}" ${t.bits[j]?'checked':''}>${esc(f||`Feature ${j+1}`)}</label>`).join('')}<label class="check"><input type="checkbox" data-rebit="${i}.4" ${t.bits[4]?'checked':''}>${esc(s.newFeature||'New feature')}</label></div><div class="hint">Which class do YOU think this example belongs in?</div><div class="labelchoice"><button class="choice ${t.label==='a'?'sel':''}" data-relabel="${i}.a">${esc(s.a||'Class A')}</button><button class="choice ${t.label==='b'?'sel':''}" data-relabel="${i}.b">${esc(s.b||'Class B')}</button></div></div>`).join('')}
+function retestMatches(){return s.retests.filter(t=>t.label&&t.label===prediction(t,true)).length}
+
+const movieDemos=[
+ {name:'The Godfather',poster:'godfather.jpg',bits:[false,true,true,true]},
+ {name:'Cats (2019)',poster:'cats.jpg',bits:[true,true,false,false]},
+ {name:'The Cabin in the Woods',poster:'cabin.jpg',bits:[true,false,true,true]}
+];
+function movieDemoHTML(){
+ const idx=s.movieDemo||0,m=movieDemos[idx],total=demoWeights.reduce((n,x,i)=>n+(m.bits[i]?x.w:0),0);
+ return `<div class="movieExamplesLabel">EXAMPLES</div>
+ <div class="movieTabs">${movieDemos.map((x,i)=>`<button class="movieTab ${i===idx?'active':''}" data-movie="${i}">${esc(x.name)}</button>`).join('')}</div>
+ <div class="movieStage">
+   <div class="posterFrame"><img src="${m.poster}" alt="${esc(m.name)} poster"></div>
+   <div class="featureLights">
+     ${demoWeights.map((x,i)=>`<div class="featureLight ${m.bits[i]?(x.w<0?'on neg':'on pos'):'off'}"><span class="label">${esc(x.name)}</span><span class="value">${m.bits[i]?(x.w>0?'+':'')+x.w:'—'}</span></div>`).join('')}
+   </div>
+ </div>
+ <div class="demoMath">
+   <div class="formula">${demoWeights.map((x,i)=>m.bits[i]?(x.w>0?'+':'')+x.w:'0').join('  ')} = <b>${total>0?'+':''}${total}</b></div>
+   ${scoreLine('BAD MOVIE (−)','GOOD MOVIE (+)',`Model score for ${m.name}`,total)}
+ </div>
+ <div class="semantic next"><span class="semanticTag">RESULT</span><b>Prediction:</b> ${total<0?'BAD MOVIE':total>0?'GOOD MOVIE':'DECISION POINT'}</div>`;
+}
+function page(){process();let h='';
+if(s.page===0)h=`<div class="eyebrow">INTRODUCTION</div><h2>Linear Classifiers</h2><p class="lead"><b>Our second type of AI model.</b></p><div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">A <b>linear classifier</b> is a type of model that looks at multiple pieces of information, gives each piece a level of importance, and combines them to sort something into one of two <b>classes</b>.</p></div><div class="semantic do"><span class="semanticTag">TODAY'S ACTIVITY</span><h3>Build one yourself.</h3><p class="copy">You will choose the question your model answers, choose its two classes, decide which features it should check, and decide how strongly those features should push its decision.</p></div><div class="semantic next"><span class="semanticTag">BY THE END</span><p class="copy">You should be able to explain how <b>features</b>, <b>weights</b>, and a final <b>score</b> work together to create a prediction.</p></div>${nav(false,true)}`;
+if(s.page===1){const ds=demoScore();h=`<div class="eyebrow">LEARN</div><h2>What does a “weight” do?</h2><div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">A weight tells the model two things: <b>which direction</b> a feature should push the decision, and <b>how strongly</b> it should push.</p></div><div class="balanceBox"><div class="scoreQuestion">Example: Is this a good movie or a bad movie?</div>${balanceSVG(ds)}<div class="weightTray">${demoWeights.map((x,i)=>`<button class="weightChip ${x.w<0?'neg':''} ${s.demo[i]?'on':''}" data-demo="${i}">${esc(x.name)} ${x.w>0?'+':''}${x.w}</button>`).join('')}</div><div class="demoCaption">Click the feature weights on and off. Watch the physical scale and score line move together.</div>${scoreLine('BAD MOVIE','GOOD MOVIE','The same decision, represented as a score line',ds)}</div><div class="semantic next"><span class="semanticTag">NOTICE</span><p class="copy">The scale is a physical metaphor. The score line shows the same push using numbers. Left is negative and moves toward <b>BAD MOVIE</b>. Right is positive and moves toward <b>GOOD MOVIE</b>.</p></div><div class="semantic important"><span class="semanticTag">IMPORTANT</span><h3>Negative does not mean unimportant.</h3><p class="copy">Negative and positive describe <b>direction</b>. Distance from zero describes <b>strength</b>.</p></div>${nav()}`}
+if(s.page===2)h=`<div class="eyebrow">BUILD</div><h2>Choose your question and two classes.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">A classifier needs a clear question and exactly two possible <b>classes</b> to choose between.</p></div>
+<div class="example"><span class="exampletag">EXAMPLE</span><br><b>Question:</b> Is this a good movie or a bad movie?<br><b>Class A:</b> Bad movie<br><b>Class B:</b> Good movie</div>
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span><h3>Define your classifier.</h3><p class="copy">Choose the question your model will answer, then name the two classes it can predict.</p></div>
+${scoreLine(s.a||'CLASS A',s.b||'CLASS B',s.question||'Your question will appear here',0)}
+<div class="task"><div class="workTitle">YOUR WORK</div><div class="fields">${input('What question will your model answer?','question',s.question)}${input('Class A · negative / left side','a',s.a)}${input('Class B · positive / right side','b',s.b)}</div></div>
+<div class="semantic next"><span class="semanticTag">WHY THIS MATTERS</span><p class="copy">A classifier can only make a useful prediction if we clearly define the decision it is supposed to make.</p></div>${nav()}`;
+if(s.page===3)h=`<div class="eyebrow">BUILD</div><h2>What should your model check for?</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">Each piece of information the model checks is called a <b>feature</b>. For this model, every feature should be a question that can be answered <b>yes or no</b>.</p></div>
+<div class="example"><span class="exampletag">EXAMPLE</span><br><b>Movie feature:</b> Has positive reviews?<br><span class="hint">The model can answer YES or NO.</span></div>
+${scoreLine(s.a||'CLASS A',s.b||'CLASS B',s.question||'Your classifier',0)}
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span><h3>What features do you want the model to check?</h3></div>
+<div class="task"><div class="workTitle">YOUR WORK</div><div class="fields">${s.features.map((f,i)=>input(`Feature ${i+1}`,`features.${i}`,f)).join('')}</div></div>
+<div class="semantic next"><span class="semanticTag">WHAT THIS DOES</span><p class="copy">Your features decide <i>what information the model is allowed to notice.</i></p></div>${nav()}`;
+if(s.page===4)h=`<div class="eyebrow">BUILD</div><h2>How should each feature push the decision?</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">Now give each feature a <b>weight</b>. A weight tells the model <b>which direction to push</b> when that feature is present, and <b>how strongly to push</b>.</p></div>
+<div class="example"><span class="exampletag">EXAMPLE</span><br><b>Movie feature:</b> Has positive reviews?<br><b>Weight:</b> +4<br><b>Direction:</b> toward GOOD MOVIE (+)<br><span class="hint">If it is present, the score moves 4 points toward GOOD MOVIE (+).</span></div>
+<div class="semantic important"><span class="semanticTag">IMPORTANT REMINDER</span><h3>Negative does not mean unimportant.</h3><p class="copy"><b>Negative weights</b> push toward <b>${esc(s.a||'Class A')} (−)</b>. <b>Positive weights</b> push toward <b>${esc(s.b||'Class B')} (+)</b>. The farther a weight is from <b>0</b>, the stronger the push. So <b>−5 is very important</b>, just in the direction of ${esc(s.a||'Class A')}.</p><p class="copy"><b>This is another place where clarity of language matters.</b></p></div>
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span><h3>Weigh each feature.</h3><p class="copy">For each feature you chose, decide what direction it should push and how strong that push should be.</p></div>
+<div class="task"><div class="workTitle">YOUR WORK</div>${s.features.map((f,i)=>slider(i,f,s.weights[i])).join('')}</div>
+<div class="semantic next"><span class="semanticTag">REMEMBER</span><p class="copy">Page 4 chose <i>what to check</i>. This page chooses <i>what should happen when the model finds it.</i></p></div>${nav()}`;
+if(s.page===5)h=`<div class="eyebrow">LEARN</div><h2>Watch a classifier make a prediction.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">The model does <b>not</b> use every weight every time. It checks the item, finds which features are present, and only adds the weights for those features.</p></div>
+<div class="flow"><div>1<br><b>CHECK FEATURES</b></div><div>2<br><b>USE PRESENT WEIGHTS</b></div><div>3<br><b>ADD SCORE</b></div><div>4<br><b>PREDICT A CLASS</b></div></div>
+${movieDemoHTML()}
+<div class="semantic next"><span class="semanticTag">NEXT</span><p class="copy">Next, you will test <b>your own classifier</b> using examples where you already know which class you expect.</p></div>${nav()}`;
+if(s.page===6)h=`<div class="eyebrow">TEST</div><h2>Test your model.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy"><b>Testing</b> means checking whether a model produces the results we expect.</p><p class="copy">To test our model, we need examples where we already know which class they should belong to. Then we can compare the model's prediction to the expected answer.</p><p class="copy">If the model agrees with our expected label, that example was classified the way we expected. If it does not, that tells us the model may need improvement.</p></div>
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span><p class="copy">Create <b>four examples</b>. For each one, mark which features are present and choose the class you believe is correct. After all four examples are complete, continue to reveal the model's predictions.</p></div>
+${blindTestCards(false)}
+${nav()}`;
+if(s.page===7)h=`<div class="eyebrow">INSPECT</div><h2>Where did the model agree or disagree?</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy"><b>Inspecting</b> means looking closely at the model's decisions instead of only looking at the final score.</p></div>
+${s.tests.map((t,i)=>`<div class="testcard"><h3>${esc(t.name||`Example ${i+1}`)}</h3><div class="calc">${calc(t,false).map(x=>`<div>${esc(x)}</div>`).join('')}</div><div class="scorebig">${score(t,false)>0?'+':''}${score(t,false)} → ${esc(prediction(t,false)==='a'?(s.a||'Class A'):(s.b||'Class B'))}</div>${t.label?`<div class="${t.label===prediction(t,false)?'match':'miss'}">${t.label===prediction(t,false)?'✓ MATCHED':'✕ DID NOT MATCH'} your label</div>`:'<div class="hint">No label selected yet.</div>'}</div>`).join('')}
+<div class="semantic next"><span class="semanticTag">WHAT TO NOTICE</span><p class="copy">If the model disagrees with you, ask: <b>Which feature or weight pushed the score in the wrong direction?</b></p></div>${nav()}`;
+if(s.page===8){const m=matches(false);h=`<div class="eyebrow">EVALUATE</div><h2>How well did your model perform?</h2>
+<div class="resultHero"><div class="big">${m} / 4</div><div>Your model matched ${m} of your four expected labels.</div></div>
+<div class="semantic next"><span class="semanticTag">EVALUATE</span><p class="copy">${m===4?'Your model matched all four examples. That means it worked well on this small test set. However, when we test it on a larger and more varied set of examples, we may find cases where it does not match our expectations.':'Because your model did not match all four examples, we know there is room for improvement.'}</p></div>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><h3>Two ways to improve a linear classifier</h3><div class="compare"><div class="metric"><strong>FEATURES</strong>Give the model better or more useful information to examine.</div><div class="metric"><strong>WEIGHTS</strong>Change how strongly each feature pushes the prediction toward either class.</div></div></div>
+${nav()}`}
+if(s.page===9)h=`<div class="eyebrow">REVISE</div><h2>Improve the model.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">Testing gives us evidence. We can use that evidence to make a reasoned change to the model.</p></div>
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span><p class="copy">Add exactly <b>one new feature</b>, then adjust your weights based on what you learned from testing.</p><p class="copy">First, add one new yes/no feature. Then adjust the weights if your test results suggest that some features should push harder, push less, or push in the opposite direction.</p></div>
+<div class="task"><div class="workTitle">YOUR WORK · NEW FEATURE</div>${input('What is one new yes/no feature the model should check?','newFeature',s.newFeature)}</div>
+<div class="task"><div class="workTitle">YOUR WORK · WEIGHTS</div>${s.features.map((f,i)=>slider(i,f,s.weights[i])).join('')}${slider(4,s.newFeature||'New feature',s.newWeight,true)}</div>
+<div class="semantic next"><span class="semanticTag">WHAT TO NOTICE</span><p class="copy">You are changing the model based on evidence from its test results.</p></div>${nav()}`;
+if(s.page===10)h=`<div class="eyebrow">TEST AGAIN</div><h2>Test the revised model.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">To compare the revised model fairly, use the <b>same four examples</b> you tested before.</p><p class="copy">Type them in again, mark which features are present, and choose the class you expect. The revised model's predictions will stay hidden until the next page.</p></div>
+<div class="semantic do"><span class="semanticTag">YOUR TASK</span><p class="copy">Re-create the same four test examples you used before. This time, include the new feature you added.</p></div>
+${blindRetestCards()}
+${nav()}`;
+
+if(s.page===11)h=`<div class="eyebrow">INSPECT AGAIN</div><h2>Inspect the revised model.</h2>
+<div class="semantic learn"><span class="semanticTag">LEARN</span><p class="copy">Now reveal the revised model's predictions and compare them to the labels you entered.</p></div>
+${s.retests.map((t,i)=>`<div class="testcard"><h3>${esc(t.name||`Example ${i+1}`)}</h3><div class="calc">${calc(t,true).map(x=>`<div>${esc(x)}</div>`).join('')}</div><div class="scorebig">${score(t,true)>0?'+':''}${score(t,true)} → ${esc(prediction(t,true)==='a'?(s.a||'Class A'):(s.b||'Class B'))}</div>${t.label?`<div class="${t.label===prediction(t,true)?'match':'miss'}">${t.label===prediction(t,true)?'✓ MATCHED':'✕ DID NOT MATCH'} your label</div>`:'<div class="hint">No label selected yet.</div>'}</div>`).join('')}
+<div class="compare"><div class="metric"><span>BEFORE</span><strong>${matches(false)} / 4</strong></div><div class="metric"><span>AFTER</span><strong>${retestMatches()} / 4</strong></div></div>
+<div class="semantic next"><span class="semanticTag">WHAT TO NOTICE</span><p class="copy">Did the revised model match more of your expected labels, fewer, or the same number?</p></div>${nav()}`;
+$('view').innerHTML=h;bind();}
+function bind(){
+ document.querySelectorAll('[data-key]').forEach(e=>e.addEventListener('input',()=>{const k=e.dataset.key;if(k.startsWith('features.'))s.features[+k.split('.')[1]]=e.value;else if(k.startsWith('test.'))s.tests[+k.split('.')[1]].name=e.value;else if(k.startsWith('retest.'))s.retests[+k.split('.')[1]].name=e.value;else s[k]=e.value;save();if(s.page===2){const q=document.querySelector('.scoreQuestion');const labs=document.querySelectorAll('.scoreLabels span');if(q)q.textContent=s.question||'Your question will appear here';if(labs[0])labs[0].textContent='← '+(s.a||'CLASS A');if(labs[1])labs[1].textContent=(s.b||'CLASS B')+' →';}}));
+ document.querySelectorAll('[data-slider]').forEach(e=>e.addEventListener('input',()=>{if(e.dataset.slider==='new')s.newWeight=+e.value;else s.weights[+e.dataset.slider]=+e.value;const id=e.dataset.slider==='new'?'bubblen':'bubble'+e.dataset.slider;$(id).textContent=(+e.value>0?'+':'')+e.value;$(id).style.left=((+e.value+5)*10)+'%';save()}));
+ document.querySelectorAll('[data-bit]').forEach(e=>e.addEventListener('change',()=>{const [i,j]=e.dataset.bit.split('.').map(Number);s.tests[i].bits[j]=e.checked;save();page()}));
+ document.querySelectorAll('[data-bitblind]').forEach(e=>e.addEventListener('change',()=>{const [i,j]=e.dataset.bitblind.split('.').map(Number);s.tests[i].bits[j]=e.checked;save()}));
+ document.querySelectorAll('[data-label]').forEach(e=>e.addEventListener('click',()=>{const [i,l]=e.dataset.label.split('.');s.tests[+i].label=l;save();page()}));
+ document.querySelectorAll('[data-labelblind]').forEach(e=>e.addEventListener('click',()=>{const [i,l]=e.dataset.labelblind.split('.');s.tests[+i].label=l;save();e.closest('.labelchoice').querySelectorAll('.choice').forEach(b=>b.classList.remove('sel'));e.classList.add('sel')}));
+ document.querySelectorAll('[data-rebit]').forEach(e=>e.addEventListener('change',()=>{const [i,j]=e.dataset.rebit.split('.').map(Number);s.retests[i].bits[j]=e.checked;save()}));
+ document.querySelectorAll('[data-relabel]').forEach(e=>e.addEventListener('click',()=>{const [i,l]=e.dataset.relabel.split('.');s.retests[+i].label=l;save();e.closest('.labelchoice').querySelectorAll('.choice').forEach(b=>b.classList.remove('sel'));e.classList.add('sel')}));
+ document.querySelectorAll('[data-exit]').forEach(e=>e.addEventListener('input',()=>{s.exit[e.dataset.exit]=e.value;save()}));
+ document.querySelectorAll('[data-movie]').forEach(e=>e.addEventListener('click',()=>{s.movieDemo=+e.dataset.movie;save();page()}));
+ document.querySelectorAll('[data-demo]').forEach(e=>e.addEventListener('click',()=>{const i=+e.dataset.demo;s.demo[i]=!s.demo[i];save();page()}));
+}
+window.go=n=>{if(n<0||n>=pages.length)return;s.page=n;save();page();window.scrollTo({top:0,behavior:'smooth'})};
+window.resetLab=()=>{if(confirm('Start over and erase this model?')){s=fresh();save();page()}};
+$('vocabTab').onclick=()=>$('drawerDock').classList.toggle('open');
+const savedTheme=localStorage.getItem('weightballTheme')||'dark';
+if(savedTheme==='light')document.body.classList.add('light');
+function updateThemeBtn(){const light=document.body.classList.contains('light');$('themeBtn').textContent=light?'☾ Dark mode':'☀ Light mode'}
+$('themeBtn').onclick=()=>{document.body.classList.toggle('light');localStorage.setItem('weightballTheme',document.body.classList.contains('light')?'light':'dark');updateThemeBtn()};
+updateThemeBtn();
+page();
+</script>
+</body>
+</html>
